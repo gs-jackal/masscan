@@ -11,7 +11,7 @@
 char global_self[512] = "";
 
 
-#if defined(__GLIBC__)
+#if defined(__GLIBC__) && !defined(WIN32)
 #include <unistd.h>
 #include <execinfo.h>
 #include <dlfcn.h>
@@ -86,10 +86,9 @@ pixie_backtrace_init(const char *self)
     if (x == -1)
         snprintf(global_self, sizeof(global_self), "%s", self);
 
-	signal(SIGSEGV, handle_segfault);
+    signal(SIGSEGV, handle_segfault);
 }
 #elif defined(__MINGW32__)
-#include <bfd.h>
 
 void
 pixie_backtrace_init(const char *self)
@@ -164,7 +163,7 @@ void printStack( void )
      for( i = 0; i < frames; i++ ) {
          Dbg.SymFromAddr( process, ( DWORD64 )( stack[ i ] ), 0, symbol );
 
-         printf( "%i: %s - 0x%0X\n", frames - i - 1, symbol->Name, symbol->Address );
+         printf( "%u: %s - 0x%0X\n", frames - i - 1, symbol->Name, symbol->Address );
      }
 
      free( symbol );
@@ -180,7 +179,6 @@ handle_segfault(int sig)
     printf(" https://github.com/robertdavidgraham/masscan/issues\n");
     printf("======================================================================");
     exit(1);
-    return;
 }
 
 

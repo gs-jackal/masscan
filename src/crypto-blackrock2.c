@@ -1,6 +1,7 @@
 #include "rand-blackrock.h"
 #include "pixie-timer.h"
 #include "unusedparm.h"
+#include "util-malloc.h"
 #include "string_s.h"
 #include <stdint.h>
 #include <string.h>
@@ -179,7 +180,7 @@ static const uint32_t SB8[64] =
 /***************************************************************************
  * It's an s-box. You gotta have an s-box
  ***************************************************************************/
-static const unsigned char sbox[] = {
+const unsigned char sbox2[] = {
 0x91, 0x58, 0xb3, 0x31, 0x6c, 0x33, 0xda, 0x88,
 0x57, 0xdd, 0x8c, 0xf2, 0x29, 0x5a, 0x08, 0x9f,
 0x49, 0x34, 0xce, 0x99, 0x9e, 0xbf, 0x0f, 0x81,
@@ -311,22 +312,22 @@ ROUND(uint64_t r, uint64_t R, uint64_t seed)
     }
     return Y;
 #if 0
-    r0 = sbox[GETBYTE(R,0)]<< 6 | sbox[GETBYTE(R,1)]<< 0;
-    r1 = sbox[GETBYTE(R,2)]<< 6 | sbox[GETBYTE(R,5)]<< 0;
-    r2 = sbox[GETBYTE(R,4)]<< 6 | sbox[GETBYTE(R,5)]<< 0;
-    r3 = sbox[GETBYTE(R,6)]<< 6 | sbox[GETBYTE(R,7)]<< 0;
+    r0 = sbox2[GETBYTE(R,0)]<< 6 | sbox2[GETBYTE(R,1)]<< 0;
+    r1 = sbox2[GETBYTE(R,2)]<< 6 | sbox2[GETBYTE(R,5)]<< 0;
+    r2 = sbox2[GETBYTE(R,4)]<< 6 | sbox2[GETBYTE(R,5)]<< 0;
+    r3 = sbox2[GETBYTE(R,6)]<< 6 | sbox2[GETBYTE(R,7)]<< 0;
 
     R = r0 ^ (r1<<12) * (r2 << 24) ^ (r3 << 36) * r;
 
     return R;
-    /*return((uint64_t)sbox[GETBYTE(R,7ULL)]<< 0ULL)
-        | ((uint64_t)sbox[GETBYTE(R,6ULL)]<< 8ULL)
-        | ((uint64_t)sbox[GETBYTE(R,5ULL)]<<16ULL)
-        | ((uint64_t)sbox[GETBYTE(R,4ULL)]<<24ULL)
-        | ((uint64_t)sbox[GETBYTE(R,3ULL)]<<32ULL)
-        | ((uint64_t)sbox[GETBYTE(R,2ULL)]<<40ULL)
-        | ((uint64_t)sbox[GETBYTE(R,1ULL)]<<48ULL)
-        | ((uint64_t)sbox[GETBYTE(R,0ULL)]<<56ULL)
+    /*return((uint64_t)sbox2[GETBYTE(R,7ULL)]<< 0ULL)
+        | ((uint64_t)sbox2[GETBYTE(R,6ULL)]<< 8ULL)
+        | ((uint64_t)sbox2[GETBYTE(R,5ULL)]<<16ULL)
+        | ((uint64_t)sbox2[GETBYTE(R,4ULL)]<<24ULL)
+        | ((uint64_t)sbox2[GETBYTE(R,3ULL)]<<32ULL)
+        | ((uint64_t)sbox2[GETBYTE(R,2ULL)]<<40ULL)
+        | ((uint64_t)sbox2[GETBYTE(R,1ULL)]<<48ULL)
+        | ((uint64_t)sbox2[GETBYTE(R,0ULL)]<<56ULL)
         ;*/
     return R;
 #endif
@@ -450,11 +451,8 @@ verify(struct BlackRock *br, uint64_t max)
     uint64_t range = br->range;
 
     /* Allocate a list of 1-byte counters */
-    list = (unsigned char *)malloc((size_t)((range<max)?range:max));
-    if (list == NULL)
-        exit(1);
-    memset(list, 0, (size_t)((range<max)?range:max));
-
+    list = CALLOC(1, (size_t)((range<max)?range:max));
+    
     /* For all numbers in the range, verify increment the counter for the
      * the output. */
     for (i=0; i<range; i++) {
